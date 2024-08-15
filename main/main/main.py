@@ -99,4 +99,22 @@ if response.status_code == 200:
             print("Auth cookie saved successfully!")
     else:
         print("Failed to retrieve current user information.")
-print(current_user_info.get_friends())
+
+headerNoAuth = {
+    'User-Agent': 'MyVRChatApp/1.0 (contact@example.com)'
+}
+# Step 5: Use the session to access the friends endpoint
+
+# Use the same session and headers (if necessary)
+print("attempting to get friends")
+friends_url = 'https://api.vrchat.com/api/1/auth/user/friends'
+response = session.get(friends_url, headers=headerNoAuth)
+
+# Check and print the response
+if response.status_code == 200:
+    print("Successfully retrieved friends list!")
+    friends_data = response.json()
+    print(friends_data)  # This will print the list of friends
+else:
+    print(f"Request failed with status code: {response.status_code}")
+    print(response.text)  # Additional debugging information
