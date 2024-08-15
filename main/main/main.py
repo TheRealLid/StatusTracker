@@ -87,7 +87,7 @@ else:
 # Step 4: Save the new or refreshed cookies
 
 if response.status_code == 200:
-    current_user_info = session.get('https://api.vrchat.com/api/1/auth/user')
+    current_user_info = session.get('https://api.vrchat.com/api/1/auth/user', headers=headers)
     print(current_user_info.status_code)
     if current_user_info.status_code == 200:
         current_user_data = current_user_info.json()
@@ -99,3 +99,4 @@ if response.status_code == 200:
             print("Auth cookie saved successfully!")
     else:
         print("Failed to retrieve current user information.")
+print(current_user_info.get_friends())
