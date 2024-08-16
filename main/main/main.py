@@ -8,6 +8,7 @@ import os
 import requests
 from base64 import b64encode
 import pickle
+import json
 
 # Load environment variables from a .env file
 load_dotenv()
@@ -73,7 +74,7 @@ else:
             # Retry logging in after 2FA
             response = session.get(login_url, headers=headers)
             print("Post-2FA Login Response Status Code:", response.status_code)
-            print("Post-2FA Login Response Content:", response.text)
+            #print("Post-2FA Login Response Content:", response.text)
             
             if response.status_code == 200 and "requiresTwoFactorAuth" not in response.json():
                 print("2FA successful, logged in!")
@@ -106,15 +107,20 @@ headerNoAuth = {
 # Step 5: Use the session to access the friends endpoint
 
 # Use the same session and headers (if necessary)
-print("attempting to get friends")
+params = {
+    'offset': 0,  # Page number to start from
+    'n': 3  # Number of entries per page
+}
+
 friends_url = 'https://api.vrchat.com/api/1/auth/user/friends'
-response = session.get(friends_url, headers=headerNoAuth)
+response = session.get(friends_url, headers=headerNoAuth, params = params)
 
 # Check and print the response
 if response.status_code == 200:
     print("Successfully retrieved friends list!")
     friends_data = response.json()
     print(friends_data)  # This will print the list of friends
+    print(json.dumps(friends_data, indent=4))
 else:
     print(f"Request failed with status code: {response.status_code}")
-    print(response.text)  # Additional debugging information
+    #print(response.text)  # Additional debugging information
