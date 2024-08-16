@@ -9,6 +9,7 @@ import requests
 from base64 import b64encode
 import pickle
 import json
+import pandas as pd
 
 # Load environment variables from a .env file
 load_dotenv()
@@ -127,12 +128,21 @@ if response.status_code == 200:
         if user.get("platform") != 'web':
             user_info = {
                 "displayName": user.get("displayName"),
-                "status": user.get("status")
+                "status": user.get("status"),
+                "id": user.get("id")
             }
             extracted_data.append(user_info)
-        
-    for entry in extracted_data:
-        print(entry)
+    sorted_data = sorted(extracted_data, key=lambda x: x['status'])
+    max_display_name_length = max(len(item['displayName']) for item in sorted_data)
+    max_status_length = max(len(item['status']) for item in sorted_data)
+
+# Print each item with aligned fields
+for item in sorted_data:
+    print(f"{item['displayName']:<{max_display_name_length}}  {item['status']:<{max_status_length}}")
+
+
 else:
     print(f"Request failed with status code: {response.status_code}")
     #print(response.text)  # Additional debugging information
+df = pd.DataFrame(sorted_data)
+df.to_csv('sorted_data.csv', index=False)
