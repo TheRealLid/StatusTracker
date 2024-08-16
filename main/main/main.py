@@ -49,7 +49,7 @@ else:
 
     # Debugging - Log the response content to understand what's happening
     print("Login Response Status Code:", response.status_code)
-    print("Login Response Content:", response.text)
+    #print("Login Response Content:", response.text)
 
     # Handle the login response and 2FA if required
     if response.status_code == 200:
@@ -63,13 +63,13 @@ else:
                 totp_url = 'https://api.vrchat.com/api/1/auth/twofactorauth/totp/verify'
                 totp_response = session.post(totp_url, json={'code': totp_code}, headers=headers)
                 print("TOTP 2FA Submission Response Status Code:", totp_response.status_code)
-                print("TOTP 2FA Submission Response Content:", totp_response.text)
+                #print("TOTP 2FA Submission Response Content:", totp_response.text)
             elif "otp" in response.json()["requiresTwoFactorAuth"]:
                 otp_code = input("Enter your OTP 2FA Code: ")
                 otp_url = 'https://api.vrchat.com/api/1/auth/twofactorauth/otp/verify'
                 otp_response = session.post(otp_url, json={'code': otp_code}, headers=headers)
                 print("OTP 2FA Submission Response Status Code:", otp_response.status_code)
-                print("OTP 2FA Submission Response Content:", otp_response.text)
+                #print("OTP 2FA Submission Response Content:", otp_response.text)
             
             # Retry logging in after 2FA
             response = session.get(login_url, headers=headers)
@@ -101,7 +101,7 @@ if response.status_code == 200:
     else:
         print("Failed to retrieve current user information.")
 
-headerNoAuth = {
+header_no_auth = {
     'User-Agent': 'MyVRChatApp/1.0 (contact@example.com)'
 }
 # Step 5: Use the session to access the friends endpoint
@@ -109,18 +109,30 @@ headerNoAuth = {
 # Use the same session and headers (if necessary)
 params = {
     'offset': 0,  # Page number to start from
-    'n': 3  # Number of entries per page
+    'n': 100,  # Number of entries per page
+    'offline': False
 }
 
 friends_url = 'https://api.vrchat.com/api/1/auth/user/friends'
-response = session.get(friends_url, headers=headerNoAuth, params = params)
+response = session.get(friends_url, headers=header_no_auth, params = params)
 
 # Check and print the response
 if response.status_code == 200:
     print("Successfully retrieved friends list!")
     friends_data = response.json()
-    print(friends_data)  # This will print the list of friends
+
     print(json.dumps(friends_data, indent=4))
+    extracted_data = []
+    for user in friends_data:
+        if user.get("platform") != 'web':
+            user_info = {
+                "displayName": user.get("displayName"),
+                "status": user.get("status")
+            }
+            extracted_data.append(user_info)
+        
+    for entry in extracted_data:
+        print(entry)
 else:
     print(f"Request failed with status code: {response.status_code}")
     #print(response.text)  # Additional debugging information
