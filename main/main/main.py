@@ -104,75 +104,78 @@ if response.status_code == 200:
 header_no_auth = {
     'User-Agent': 'MyVRChatApp/1.0 (contact@example.com)'
 }
-# Step 5: Use the session to access the friends endpoint
-
-# Use the same session and headers (if necessary)
-params = {
-    'offset': 0,  # Page number to start from
-    'n': 100,  # Number of entries per page
-    'offline': False
-}
-
-friends_url = 'https://api.vrchat.com/api/1/auth/user/friends'
-response = session.get(friends_url, headers=header_no_auth, params = params)
-
-# Check and print the response
-if response.status_code == 200:
-    print("Successfully retrieved friends list!")
-    friends_data = response.json()
-
-    print(json.dumps(friends_data, indent=4))
-    extracted_data = []
-    for user in friends_data:
-        if user.get("platform") != 'web':
-            user_info = {
-                "displayName": user.get("displayName"),
-                "status": user.get("status"),
-                "id": user.get("id")
-            }
-            extracted_data.append(user_info)
-    sorted_data = sorted(extracted_data, key=lambda x: x['status'])
-    max_display_name_length = max(len(item['displayName']) for item in sorted_data)
-    max_status_length = max(len(item['status']) for item in sorted_data)
-
-# Print each item with aligned fields
-for item in sorted_data:
-    print(f"{item['displayName']:<{max_display_name_length}}  {item['status']:<{max_status_length}}")
 
 
-else:
-    print(f"Request failed with status code: {response.status_code}")
-    #print(response.text)  
-
-
-
-if not os.path.exists('user_data.csv'):
-    headers = ["displayName", "id", "Orange", "Green", "Blue"]
-    df = pd.DataFrame(columns=headers)
-    df.to_csv('user_data.csv', index=False)
-
-df_existing = pd.read_csv('user_data.csv')
-
-print(df_existing)
-for user in extracted_data:
-    user_id = user.get('id')
-    if user_id in df_existing['id'].values:
-        index = df_existing.index[df_existing['id'] == user_id].tolist()[0]
-        if user['status'] == 'ask me':
-            df_existing.at[index, 'Orange'] += 1
-        if user['status'] == 'active':
-            df_existing.at[index, 'Green'] += 1
-        if user['status'] == 'join me':
-            df_existing.at[index, 'Blue'] += 1
-    else:
-
-        df_existing.loc[len(df_existing)] = {
-            'displayName': user.get('displayName'),
-            'id': user_id,
-            'Orange': 1 if user['status'] == 'ask me' else 0,
-            'Green': 1 if user['status'] == 'active' else 0,
-            'Blue': 1 if user['status'] == 'join me' else 0
+while True:
+    for i in range(3):
+        params = {
+            'offset': i,  # Page number to start from
+            'n': 100,  # Number of entries per page
+            'offline': False
         }
 
+        friends_url = 'https://api.vrchat.com/api/1/auth/user/friends'
+        response = session.get(friends_url, headers=header_no_auth, params = params)
 
-df_existing.to_csv('user_data.csv', index=False)
+        # Check and print the response
+        if response.status_code == 200:
+            print("Successfully retrieved friends list!")
+            friends_data = response.json()
+
+            print(json.dumps(friends_data, indent=4))
+            extracted_data = []
+            for user in friends_data:
+                if user.get("platform") != 'web':
+                    user_info = {
+                        "displayName": user.get("displayName"),
+                        "status": user.get("status"),
+                        "id": user.get("id")
+                    }
+                    extracted_data.append(user_info)
+            sorted_data = sorted(extracted_data, key=lambda x: x['status'])
+            max_display_name_length = max(len(item['displayName']) for item in sorted_data)
+            max_status_length = max(len(item['status']) for item in sorted_data)
+
+        # Print each item with aligned fields
+        for item in sorted_data:
+            print(f"{item['displayName']:<{max_display_name_length}}  {item['status']:<{max_status_length}}")
+
+
+        else:
+            print(f"Request failed with status code: {response.status_code}")
+            #print(response.text)  
+
+
+
+        if not os.path.exists('user_data.csv'):
+            headers = ["displayName", "id", "Orange", "Green", "Blue"]
+            df = pd.DataFrame(columns=headers)
+            df.to_csv('user_data.csv', index=False)
+
+        df_existing = pd.read_csv('user_data.csv')
+
+        print(df_existing)
+        for user in extracted_data:
+            user_id = user.get('id')
+            if user_id in df_existing['id'].values:
+                index = df_existing.index[df_existing['id'] == user_id].tolist()[0]
+                if user['status'] == 'ask me':
+                    df_existing.at[index, 'Orange'] += 1
+                if user['status'] == 'active':
+                    df_existing.at[index, 'Green'] += 1
+                if user['status'] == 'join me':
+                    df_existing.at[index, 'Blue'] += 1
+            else:
+
+                df_existing.loc[len(df_existing)] = {
+                    'displayName': user.get('displayName'),
+                    'id': user_id,
+                    'Orange': 1 if user['status'] == 'ask me' else 0,
+                    'Green': 1 if user['status'] == 'active' else 0,
+                    'Blue': 1 if user['status'] == 'join me' else 0
+                }
+
+
+        df_existing.to_csv('user_data.csv', index=False)
+        time.sleep(61)
+
