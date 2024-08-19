@@ -2,3 +2,4 @@
 main/main/.env
 cookies.pkl
 sorted_data.csv
+user_data.csv

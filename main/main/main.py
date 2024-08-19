@@ -10,7 +10,7 @@ from base64 import b64encode
 import pickle
 import json
 import pandas as pd
-
+import time
 # Load environment variables from a .env file
 load_dotenv()
 
@@ -47,7 +47,6 @@ else:
 
     # Attempt to log in using the provided URL
     response = session.get(login_url, headers=headers)
-
     # Debugging - Log the response content to understand what's happening
     print("Login Response Status Code:", response.status_code)
     #print("Login Response Content:", response.text)
@@ -143,6 +142,37 @@ for item in sorted_data:
 
 else:
     print(f"Request failed with status code: {response.status_code}")
-    #print(response.text)  # Additional debugging information
-df = pd.DataFrame(sorted_data)
-df.to_csv('sorted_data.csv', index=False)
+    #print(response.text)  
+
+
+
+if not os.path.exists('user_data.csv'):
+    headers = ["displayName", "id", "Orange", "Green", "Blue"]
+    df = pd.DataFrame(columns=headers)
+    df.to_csv('user_data.csv', index=False)
+
+df_existing = pd.read_csv('user_data.csv')
+
+print(df_existing)
+for user in extracted_data:
+    user_id = user.get('id')
+    if user_id in df_existing['id'].values:
+        index = df_existing.index[df_existing['id'] == user_id].tolist()[0]
+        if user['status'] == 'ask me':
+            df_existing.at[index, 'Orange'] += 1
+        if user['status'] == 'active':
+            df_existing.at[index, 'Green'] += 1
+        if user['status'] == 'join me':
+            df_existing.at[index, 'Blue'] += 1
+    else:
+
+        df_existing.loc[len(df_existing)] = {
+            'displayName': user.get('displayName'),
+            'id': user_id,
+            'Orange': 1 if user['status'] == 'ask me' else 0,
+            'Green': 1 if user['status'] == 'active' else 0,
+            'Blue': 1 if user['status'] == 'join me' else 0
+        }
+
+
+df_existing.to_csv('user_data.csv', index=False)
