@@ -49,7 +49,6 @@ else:
     response = session.get(login_url, headers=headers)
     # Debugging - Log the response content to understand what's happening
     print("Login Response Status Code:", response.status_code)
-    #print("Login Response Content:", response.text)
 
     # Handle the login response and 2FA if required
     if response.status_code == 200:
@@ -63,18 +62,15 @@ else:
                 totp_url = 'https://api.vrchat.com/api/1/auth/twofactorauth/totp/verify'
                 totp_response = session.post(totp_url, json={'code': totp_code}, headers=headers)
                 print("TOTP 2FA Submission Response Status Code:", totp_response.status_code)
-                #print("TOTP 2FA Submission Response Content:", totp_response.text)
             elif "otp" in response.json()["requiresTwoFactorAuth"]:
                 otp_code = input("Enter your OTP 2FA Code: ")
                 otp_url = 'https://api.vrchat.com/api/1/auth/twofactorauth/otp/verify'
                 otp_response = session.post(otp_url, json={'code': otp_code}, headers=headers)
                 print("OTP 2FA Submission Response Status Code:", otp_response.status_code)
-                #print("OTP 2FA Submission Response Content:", otp_response.text)
             
             # Retry logging in after 2FA
             response = session.get(login_url, headers=headers)
             print("Post-2FA Login Response Status Code:", response.status_code)
-            #print("Post-2FA Login Response Content:", response.text)
             
             if response.status_code == 200 and "requiresTwoFactorAuth" not in response.json():
                 print("2FA successful, logged in!")
@@ -137,13 +133,12 @@ while True:
             max_status_length = max(len(item['status']) for item in sorted_data)
 
         # Print each item with aligned fields
-        for item in sorted_data:
-            print(f"{item['displayName']:<{max_display_name_length}}  {item['status']:<{max_status_length}}")
+        #for item in sorted_data:
+            #print(f"{item['displayName']:<{max_display_name_length}}  {item['status']:<{max_status_length}}")
 
 
         else:
             print(f"Request failed with status code: {response.status_code}")
-            #print(response.text)  
 
 
 
