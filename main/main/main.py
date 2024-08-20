@@ -3,22 +3,26 @@ from vrchatapi.api import authentication_api
 from vrchatapi.exceptions import UnauthorizedException
 from vrchatapi.models.two_factor_auth_code import TwoFactorAuthCode
 from vrchatapi.models.two_factor_email_code import TwoFactorEmailCode
+
 from dotenv import load_dotenv
 import os
 import requests
 from base64 import b64encode
+
 import pickle
 import json
 import pandas as pd
 import time
 
-
+# Loads username+pass from .env file
 def load_environment_variables():
     load_dotenv()
 
+# creates the initial session
 def create_session():
     return requests.Session()
 
+#attempts to load in existing auth cookie if it exists
 def load_cookies(session, cookie_file = 'cookies.pkl'):
     if os.path.exists(cookie_file):
         with open(cookie_file, 'rb') as file:
@@ -29,12 +33,13 @@ def load_cookies(session, cookie_file = 'cookies.pkl'):
     print("Cookie failed to load")
     return False
 
+#Checks if current cookie is valid or not
 def is_cookie_valid(session):
     login_url = 'https://api.vrchat.com/api/1/auth/user'
     response = session.get(login_url)
     return response.status_code == 200
 
-
+# If current cookie is not valid this will be called and will invoke 2fa loggin process
 def handle_login(session):
     # Prepare the Authorization header
     username = os.getenv("USER_NAME")
@@ -59,7 +64,7 @@ def handle_login(session):
         print("Login failed.")
         return False
 
-
+# handles 2fa login
 def handle_2fa(session, auth_info, headers):
     if "totp" in auth_info:
         totp_code = input("Enter your TOTP 2FA Code: ")
@@ -70,11 +75,13 @@ def handle_2fa(session, auth_info, headers):
         otp_url = 'https://api.vrchat.com/api/1/auth/twofactorauth/otp/verify'
         session.post(otp_url, json={'code': otp_code}, headers=headers)
 
+# updates the new auth cookie
 def save_cookies(session, cookie_file = 'cookies.pkl'):
     with open(cookie_file,'wb') as file:
         pickle.dump(session.cookies,file)
         print("Cookies saved, yum")
 
+# gets raw friend data from the VRC API
 def get_friends_data(session,offset):
     params = {'offset': offset, 'n':100, 'offline': False}
     friends_url = 'https://api.vrchat.com/api/1/auth/user/friends'
@@ -89,6 +96,7 @@ def get_friends_data(session,offset):
         print(f"Request failed with status code: {response.status_code}")
         return None
 
+# processes the raw data into a more useable format, removes players loggin in through hte website
 def process_friends_data(friends_data):
     extracted_data = []
     for user in friends_data:
@@ -101,6 +109,7 @@ def process_friends_data(friends_data):
             extracted_data.append(user_info)
     return extracted_data
 
+# Updates the CSV file/will generate one if it doesnt already exist
 def update_user_data_csv(extracted_data,csv_file = 'user_data.csv'):
     if not os.path.exists(csv_file):
         headers = ["displayName", "id", "Orange", "Green", "Blue"]
