@@ -14,6 +14,10 @@ import json
 import pandas as pd
 import time
 
+import tkinter as tk
+from tkinter import ttk
+from tkinter import filedialog
+
 # Loads username+pass from .env file
 def load_environment_variables():
     load_dotenv()
@@ -139,6 +143,26 @@ def update_user_data_csv(extracted_data,csv_file = 'user_data.csv'):
     df_existing.to_csv(csv_file, index=False)
 
 
+window = tk.Tk()
+window.title("User DATA")
+window.geometry("400x300")
+
+def load_CSV_data(csv_file = 'user_data.csv'):
+    # Add a Treeview widget
+    tree = ttk.Treeview(window)
+    tree.pack(expand=True, fill="both")
+    df = pd.read_csv(csv_file)
+    for i in tree.get_children():
+        tree.delete(i)
+    tree["column"] = list(df.columns)
+    tree["show"] = "headings"
+    for col in tree["column"]:
+        tree.heading(col, text=col)
+        # Display the rows
+    for row in df.itertuples(index=False):
+        tree.insert("", "end", values=row)
+
+
 def main():
     load_environment_variables()
     session = create_session()
@@ -162,5 +186,8 @@ def main():
 
 
 
+
 if __name__ == "__main__":
+    load_CSV_data()
+    window.mainloop()
     main()
