@@ -173,16 +173,19 @@ class GUIWINDOW(tk.Tk):
         self.tree = ttk.Treeview(self)
         self.tree.pack(expand=True,fill = "both")
         self.load_CSV_data()
-
+        self.column_dict = {col: True  for col in list(self.df.columns)}
     def clear_tree(self):
         for i in self.tree.get_children():
             self.tree.delete(i)
 
     def on_header_click(self, col):
-        df_sorted = self.df.sort_values(by=col,ascending=False)
+        self.column_dict[col] = not self.column_dict[col]
+        if(self.column_dict[col]):
+            df_sorted = self.df.sort_values(by=col,ascending=False)
+        else:
+            df_sorted = self.df.sort_values(by=col,ascending=True)
 
         self.clear_tree()
-
 
         for row in df_sorted.itertuples(index=False):
             self.tree.insert("", "end", values=row)
