@@ -208,6 +208,7 @@ class GUIWINDOW(tk.Tk):
                 self.tree.insert("", "end", values=row)
 
     def on_header_click(self, col):
+        self.column_dict = {col: self.column_dict.get(col, True) for col in list(self.df.columns)}
         self.column_dict[col] = not self.column_dict[col]
         self.sortByCol = col
         self.sortData()
@@ -215,6 +216,11 @@ class GUIWINDOW(tk.Tk):
             
     def load_CSV_data(self, csv_file='user_data.csv'):
         # Read the CSV file into a DataFrame
+        headers = ["displayName", "id"]
+        if not os.path.exists(csv_file):
+            df = pd.DataFrame(columns=headers)
+            df.to_csv(csv_file, index=False)
+
         self.df = pd.read_csv(csv_file)
 
 
