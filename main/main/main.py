@@ -18,6 +18,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 
+import threading
 # Loads username+pass from .env file
 def load_environment_variables():
     load_dotenv()
@@ -142,27 +143,6 @@ def update_user_data_csv(extracted_data,csv_file = 'user_data.csv'):
 
     df_existing.to_csv(csv_file, index=False)
 
-
-window = tk.Tk()
-window.title("User DATA")
-window.geometry("400x300")
-
-def load_CSV_data(csv_file = 'user_data.csv'):
-    # Add a Treeview widget
-    tree = ttk.Treeview(window)
-    tree.pack(expand=True, fill="both")
-    df = pd.read_csv(csv_file)
-    for i in tree.get_children():
-        tree.delete(i)
-    tree["column"] = list(df.columns)
-    tree["show"] = "headings"
-    for col in tree["column"]:
-        tree.heading(col, text=col)
-        # Display the rows
-    for row in df.itertuples(index=False):
-        tree.insert("", "end", values=row)
-
-
 def main():
     load_environment_variables()
     session = create_session()
@@ -185,9 +165,55 @@ def main():
         time.sleep(61)
 
 
+class GUIWINDOW(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("USER DATA DISPLAY")
+        self.geometry("600x400")
+        self.tree = ttk.Treeview(self)
+        self.tree.pack(expand=True,fill = "both")
+        self.load_CSV_data()
+
+    def clear_tree(self):
+        for i in self.tree.get_children():
+            self.tree.delete(i)
+
+    def on_header_click(self, col):
+        df_sorted = self.df.sort_values(by=col,ascending=False)
+
+        self.clear_tree()
+
+
+        for row in df_sorted.itertuples(index=False):
+            self.tree.insert("", "end", values=row)
+            
+    def load_CSV_data(self, csv_file='user_data.csv'):
+        # Read the CSV file into a DataFrame
+        self.df = pd.read_csv(csv_file)
+
+
+        self.clear_tree()
+
+        # Define the columns and headings
+        self.tree["columns"] = list(self.df.columns)
+        self.tree["show"] = "headings"
+
+        for col in self.tree["columns"]:
+            # Bind the header click to the sorting function
+            self.tree.heading(col, text=col, command=lambda _col=col: self.on_header_click(_col))
+
+        # Insert the data into the Treeview
+        for row in self.df.itertuples(index=False):
+            self.tree.insert("", "end", values=row)
+
+
+
+
+
+
 
 
 if __name__ == "__main__":
-    load_CSV_data()
-    window.mainloop()
+    app = GUIWINDOW()
+    app.mainloop()
     main()
