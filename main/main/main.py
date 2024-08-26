@@ -180,29 +180,38 @@ class VRChatSessionManager:
 class GUIWINDOW(tk.Tk):
     def __init__(self):
         super().__init__()
+        self.sortByCol = None
         self.title("USER DATA DISPLAY")
         self.geometry("600x400")
         self.tree = ttk.Treeview(self)
         self.tree.pack(expand=True,fill = "both")
         self.load_CSV_data()
         self.column_dict = {col: True  for col in list(self.df.columns)}
+
         self.start_update_thread()  # Start the background update thread
 
     def clear_tree(self):
         for i in self.tree.get_children():
             self.tree.delete(i)
 
+    def sortData(self):
+        if self.sortByCol is not None:
+            col = self.sortByCol
+            if(self.column_dict[col]):
+                df_sorted = self.df.sort_values(by=col,ascending=False)
+            else:
+                df_sorted = self.df.sort_values(by=col,ascending=True)
+
+            self.clear_tree()
+
+            for row in df_sorted.itertuples(index=False):
+                self.tree.insert("", "end", values=row)
+
     def on_header_click(self, col):
         self.column_dict[col] = not self.column_dict[col]
-        if(self.column_dict[col]):
-            df_sorted = self.df.sort_values(by=col,ascending=False)
-        else:
-            df_sorted = self.df.sort_values(by=col,ascending=True)
+        self.sortByCol = col
+        self.sortData()
 
-        self.clear_tree()
-
-        for row in df_sorted.itertuples(index=False):
-            self.tree.insert("", "end", values=row)
             
     def load_CSV_data(self, csv_file='user_data.csv'):
         # Read the CSV file into a DataFrame
@@ -220,8 +229,11 @@ class GUIWINDOW(tk.Tk):
             self.tree.heading(col, text=col, command=lambda _col=col: self.on_header_click(_col))
 
         # Insert the data into the Treeview
-        for row in self.df.itertuples(index=False):
-            self.tree.insert("", "end", values=row)
+        if self.sortByCol is None:
+            for row in self.df.itertuples(index=False):
+                self.tree.insert("", "end", values=row)
+        else:
+            self.sortData()
 
     def start_update_thread(self):
         # Instantiate VRChatSessionManager with the refresh_data callback
