@@ -21,6 +21,7 @@ from vrchatapi.models.two_factor_email_code import TwoFactorEmailCode
 # Tkinter imports
 import tkinter as tk
 from tkinter import ttk, filedialog
+
 # Loads username+pass from .env file
 def load_environment_variables():
     load_dotenv()
@@ -118,31 +119,43 @@ def process_friends_data(friends_data):
 
 # Updates the CSV file/will generate one if it doesnt already exist
 def update_user_data_csv(extracted_data,csv_file = 'user_data.csv'):
+    headers = ["displayName", "id"]
     if not os.path.exists(csv_file):
-        headers = ["displayName", "id", "Orange", "Green", "Blue"]
         df = pd.DataFrame(columns=headers)
         df.to_csv(csv_file, index=False)
     df_existing = pd.read_csv(csv_file)
 
+    
     for user in extracted_data:
+        new_rows = []
         user_id = user.get('id')
+        status_map = {
+            'join me': 'Blue',
+            'active': 'Green',
+            'ask me': 'Orange',
+            'busy' : 'Red'
+        }
+
+        status = status_map.get(user.get('status'), user.get('status'))
+        if status not in df_existing.columns:
+            df_existing[status] = 0
+
         if user_id in df_existing['id'].values:
             index = df_existing.index[df_existing['id'] == user_id].tolist()[0]
-            if user['status'] == 'ask me':
-                df_existing.at[index, 'Orange'] += 1
-            if user['status'] == 'active':
-                df_existing.at[index, 'Green'] += 1
-            if user['status'] == 'join me':
-                df_existing.at[index, 'Blue'] += 1
+            df_existing.at[index, status] += 1
         else:
-            df_existing.loc[len(df_existing)] = {
-                'displayName': user.get('displayName'),
-                'id': user_id,
-                'Orange': 1 if user['status'] == 'ask me' else 0,
-                'Green': 1 if user['status'] == 'active' else 0,
-                'Blue': 1 if user['status'] == 'join me' else 0
-            }
+            new_row = {header: 0 for header in df_existing.columns}
+            new_row['displayName'] = user.get('displayName')
+            new_row['id'] = user_id
 
+            new_row[status] = 1
+            new_rows.append(pd.DataFrame([new_row]))
+            df_existing = pd.concat([df_existing] + new_rows, ignore_index=True)
+
+    df_existing.fillna(0, inplace=True)
+    for col in df_existing.columns:
+        if df_existing[col].dtype != 'object':  # Check if the column is not of object type (which includes strings)
+            df_existing[col] = df_existing[col].astype(int)
     df_existing.to_csv(csv_file, index=False)
 
 def main():
@@ -157,13 +170,13 @@ def main():
     save_cookies(session, cookie_file)
 
     while True:
-        for i in range(3):
+        for i in range(1):
             friends_data = get_friends_data(session, i)
             if friends_data:
 
                 extracted_data = process_friends_data(friends_data)
 
-                update_user_data_csv(extracted_data)
+        update_user_data_csv(extracted_data)        
         time.sleep(61)
 
 
@@ -219,6 +232,6 @@ class GUIWINDOW(tk.Tk):
 
 
 if __name__ == "__main__":
-    app = GUIWINDOW()
-    app.mainloop()
+    #app = GUIWINDOW()
+    #app.mainloop()
     main()
