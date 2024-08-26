@@ -1,24 +1,26 @@
+# Standard library imports
+import os
+import pickle
+import json
+import time
+import threading
+from base64 import b64encode
+
+# Third-party library imports
+import requests
+import pandas as pd
+from dotenv import load_dotenv
+
+# VRChat API imports
 import vrchatapi
 from vrchatapi.api import authentication_api
 from vrchatapi.exceptions import UnauthorizedException
 from vrchatapi.models.two_factor_auth_code import TwoFactorAuthCode
 from vrchatapi.models.two_factor_email_code import TwoFactorEmailCode
 
-from dotenv import load_dotenv
-import os
-import requests
-from base64 import b64encode
-
-import pickle
-import json
-import pandas as pd
-import time
-
+# Tkinter imports
 import tkinter as tk
-from tkinter import ttk
-from tkinter import filedialog
-
-import threading
+from tkinter import ttk, filedialog
 # Loads username+pass from .env file
 def load_environment_variables():
     load_dotenv()
