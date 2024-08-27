@@ -192,7 +192,8 @@ class GUIWINDOW(tk.Tk):
 
     def clear_tree(self):
         for i in self.tree.get_children():
-            self.tree.delete(i)
+            if i in self.tree.get_children():
+                self.tree.delete(i)
 
     def sortData(self):
         if self.sortByCol is not None:
