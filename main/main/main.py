@@ -186,7 +186,7 @@ class GUIWINDOW(tk.Tk):
         self.tree = ttk.Treeview(self)
         self.tree.pack(expand=True,fill = "both")
         self.load_CSV_data()
-        self.column_dict = {col: True  for col in list(self.df.columns)}
+        self.column_dict = {col: False  for col in list(self.df.columns)}
 
         self.start_update_thread()  # Start the background update thread
 
@@ -199,6 +199,7 @@ class GUIWINDOW(tk.Tk):
             col = self.sortByCol
             if(self.column_dict[col]):
                 df_sorted = self.df.sort_values(by=col,ascending=False)
+
             else:
                 df_sorted = self.df.sort_values(by=col,ascending=True)
 
@@ -208,7 +209,12 @@ class GUIWINDOW(tk.Tk):
                 self.tree.insert("", "end", values=row)
 
     def on_header_click(self, col):
-        self.column_dict = {col: self.column_dict.get(col, True) for col in list(self.df.columns)}
+        self.column_dict = {col: self.column_dict.get(col, False) for col in list(self.df.columns)}
+        # Resets all other cols states so clicking on a new header will always start descending
+
+        for column in list(self.df.columns): 
+            if column != col:
+                self.column_dict[column] = False
         self.column_dict[col] = not self.column_dict[col]
         self.sortByCol = col
         self.sortData()
