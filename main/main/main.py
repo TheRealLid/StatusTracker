@@ -212,14 +212,13 @@ class GUIWINDOW(tk.Tk):
     def on_header_click(self, col):
         self.column_dict = {col: self.column_dict.get(col, False) for col in list(self.df.columns)}
         # Resets all other cols states so clicking on a new header will always start descending
-
+        self.calculateGreenOrangeRatio()
         for column in list(self.df.columns): 
             if column != col:
                 self.column_dict[column] = False
         self.column_dict[col] = not self.column_dict[col]
         self.sortByCol = col
         self.sortData()
-
             
     def load_CSV_data(self, csv_file='user_data.csv'):
         # Read the CSV file into a DataFrame
@@ -241,6 +240,7 @@ class GUIWINDOW(tk.Tk):
             # Bind the header click to the sorting function
             self.tree.heading(col, text=col, command=lambda _col=col: self.on_header_click(_col))
 
+
         # Insert the data into the Treeview
         if self.sortByCol is None:
             for row in self.df.itertuples(index=False):
@@ -259,7 +259,9 @@ class GUIWINDOW(tk.Tk):
     def refresh_data(self):
         self.load_CSV_data()
 
-
+    def calculateGreenOrangeRatio(self):
+        Green_Blue = self.df['Green'] + self.df['Blue']
+        self.df['Orange_Percentage'] = self.df['Orange']/Green_Blue
 
 
 
