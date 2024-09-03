@@ -5,7 +5,7 @@ import json
 import time
 import threading
 from base64 import b64encode
-
+import math
 # Third-party library imports
 import requests
 import pandas as pd
@@ -229,6 +229,12 @@ class GUIWINDOW(tk.Tk):
 
         self.df = pd.read_csv(csv_file)
 
+        self.calculateGreenOrangeRatio()  # Call the method to calculate the ratio
+
+        # Format the 'Orange_Percentage' column for display
+        self.df['Orange_Percentage_Display'] = self.df['Orange_Percentage'].apply(lambda x: '∞' if math.isinf(x) else f"{x:.2f}%")
+
+        self.tree["columns"] = list(self.df.columns)
 
         self.clear_tree()
 
@@ -239,7 +245,6 @@ class GUIWINDOW(tk.Tk):
         for col in self.tree["columns"]:
             # Bind the header click to the sorting function
             self.tree.heading(col, text=col, command=lambda _col=col: self.on_header_click(_col))
-
 
         # Insert the data into the Treeview
         if self.sortByCol is None:
@@ -258,6 +263,7 @@ class GUIWINDOW(tk.Tk):
 
     def refresh_data(self):
         self.load_CSV_data()
+        self.calculateGreenOrangeRatio()  # Call the method to calculate the ratio
 
     def calculateGreenOrangeRatio(self):
         Green_Blue = self.df['Green'] + self.df['Blue']
