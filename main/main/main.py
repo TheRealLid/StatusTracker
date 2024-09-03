@@ -228,11 +228,19 @@ class GUIWINDOW(tk.Tk):
             df.to_csv(csv_file, index=False)
 
         self.df = pd.read_csv(csv_file)
+        total_status_count = self.df['Green'] + self.df['Blue'] + self.df['Orange'] + self.df['Red']
+        # Calculate the percentage of time a user is in each status
+        self.df['Green_Percentage'] = (self.df['Green'] / total_status_count) * 100
+        self.df['Blue_Percentage'] = (self.df['Blue'] / total_status_count) * 100
+        self.df['Orange_Percentage'] = (self.df['Orange'] / total_status_count) * 100
+        self.df['Red_Percentage'] = (self.df['Red'] / total_status_count) * 100
 
-        self.calculateGreenOrangeRatio()  # Call the method to calculate the ratio
+        # Format the percentage columns for display
+        for col in ['Green_Percentage', 'Blue_Percentage', 'Orange_Percentage', 'Red_Percentage']:
+            self.df[f'{col}_Display'] = self.df[col].apply(lambda x: '∞' if math.isinf(x) else f"{x:.2f}%")
 
-        # Format the 'Orange_Percentage' column for display
-        self.df['Orange_Percentage_Display'] = self.df['Orange_Percentage'].apply(lambda x: '∞' if math.isinf(x) else f"{x:.2f}%")
+        # Drop the original percentage columns
+        self.df = self.df.drop(columns=['Green_Percentage', 'Blue_Percentage', 'Orange_Percentage', 'Red_Percentage'])
 
         self.tree["columns"] = list(self.df.columns)
 
